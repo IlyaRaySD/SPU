@@ -20,12 +20,11 @@ struct Task {
 class NetworkPlanning {
 private:
     vector<Task> tasks;
-    vector<int> earliestFinishTimes;
     int numTasks;
     int criticalPathLength;
 
 public:
-    NetworkPlanning(int num) : numTasks(num), earliestFinishTimes(num, 0), criticalPathLength(0) {
+    NetworkPlanning(int num) : numTasks(num), criticalPathLength(0) {
         tasks.resize(num);
         for (int i = 0; i < num; ++i) {
             tasks[i].id = i;
