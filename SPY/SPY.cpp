@@ -5,7 +5,7 @@
 
 using namespace std;
 
-// Task struct
+
 struct Task {
     int id;
     int duration;
