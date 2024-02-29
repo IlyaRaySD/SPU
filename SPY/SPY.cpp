@@ -145,11 +145,11 @@ int main() {
     cout << "Enter the number of tasks: ";
     cin >> numTasks;
 
-    vector<vector<int>> adjMatrix(numTasks, vector<int>(numTasks));
+    vector<vector<int>> mat(numTasks, vector<int>(numTasks));
     cout << "\nEnter the matrix (only 0 or 1):\n";
     for (int i = 0; i < numTasks; ++i) {
         for (int j = 0; j < numTasks; ++j) {
-            cin >> adjMatrix[i][j];
+            cin >> mat[i][j];
         }
     }
 
@@ -160,7 +160,7 @@ int main() {
     }
 
     NetworkPlanning planner(numTasks);
-    planner.setDependencies(adjMatrix);
+    planner.setDependencies(mat);
     planner.setDurations(durations);
 
     planner.calculateEarliestTimes();
