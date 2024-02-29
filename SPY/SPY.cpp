@@ -11,10 +11,9 @@ struct Task {
     int duration;
     vector<int> next_tasks;
     vector<int> back_tasks;
-    int earlyStart;
-    int earlyFinish;
-    int lateStart;
-    int lateFinish;
+    int earlyStart = 0;
+    int earlyFinish = 0;
+    int MaxLength;
     int slack;
 };
 
@@ -53,28 +52,30 @@ public:
     }
 
     void calculateEarliestTimes() {
-        for (auto& task : tasks) {
-            int earliest = 0;
-            for (int dep : task.next_tasks) {
-                earliest = max(earliest, earliestFinishTimes[dep]);
+        for (int i = 0; i < numTasks; ++i) {
+            for (int j = 0; j < numTasks; ++j) {
+                for (int dep : tasks[j].back_tasks) {
+                    if (dep == i) {
+                        if (tasks[i].earlyStart < tasks[j].duration + tasks[j].earlyStart)
+                            tasks[i].earlyStart = tasks[j].duration + tasks[j].earlyStart;
+                    }
+                }
             }
-            task.earlyStart = earliest;
-            task.earlyFinish = earliest + task.duration;
-            earliestFinishTimes[task.id] = task.earlyFinish;
         }
-    }
 
-    void calculateLatestTimes() {
-        int projectDuration = earliestFinishTimes.back();
         for (int i = numTasks - 1; i >= 0; --i) {
-           
-            Task& task = tasks[i];
-            task.lateFinish = projectDuration;
-            task.lateStart = projectDuration - task.duration;
-            for (int dep : task.back_tasks) {
-                task.lateStart = min(task.lateStart, tasks[dep].lateFinish - task.duration);
+            for (int j = numTasks - 1; j >= 0; --j) {
+                for (int dep : tasks[j].next_tasks) {
+                    if (dep == i) {
+                        if (tasks[i].earlyFinish < tasks[j].duration + tasks[j].earlyFinish)
+                            tasks[i].earlyFinish = tasks[j].duration + tasks[j].earlyFinish;
+                    }
+                }
             }
-            task.slack = task.lateFinish - task.earlyFinish;
+        }
+
+        for (int i = 0; i < numTasks; ++i) {
+            tasks[i].MaxLength = tasks[i].duration + tasks[i].earlyFinish + tasks[i].earlyStart;
         }
     }
 
@@ -104,45 +105,37 @@ public:
     }
 
     void calculateCriticalPath() {
-        if (hasCycle()) {
-            cout << "The graph contains a cycle. Cannot determine critical path.\n";
-            return;
+        int crit = 0;
+        for (int l = 0; l < numTasks; ++l) {
+            if (tasks[l].MaxLength > crit) crit = tasks[l].MaxLength;
         }
 
-        criticalPathLength = INT_MIN; 
-        vector<int> criticalPathNodes;
-        for (auto& task : tasks) {
-            if (task.slack == 0) {
-                criticalPathLength = max(criticalPathLength, task.earlyFinish);
-                criticalPathNodes.push_back(task.id);
-            }
-        }
+        criticalPathLength = crit;
 
-        if (criticalPathLength == INT_MIN) {
-            cout << "\nNo critical path found.\n";
+        for (int i = 0; i < numTasks; ++i) {
+            tasks[i].slack = criticalPathLength - tasks[i].MaxLength;
         }
-        else {
-            cout << "\nCritical path nodes: ";
-            for (int node : criticalPathNodes) {
-                cout << node << " ";
-            }
-            cout << endl;
-        }
+        vector<int> crit_tasks;
+        for (int i = 0; i < numTasks; ++i) if (tasks[i].MaxLength - crit == 0) crit_tasks.push_back(i);
+
+        cout << "\nCritical path tasks: ";
+        for (int i = 0; i < crit_tasks.size(); ++i) cout << crit_tasks[i] << " ";
     }
 
     void printSchedule() {
-        cout << "\nTask\tEarly Start\tEarly Finish\tLate Start\tLate Finish\tSlack\n";
+        cout << "\n\nTask\tEarly Start\tEarly Finish\tMax Length\tSlack\n";
         for (const auto& task : tasks) {
             cout << task.id << "\t" << task.earlyStart << "\t\t" << task.earlyFinish << "\t\t"
-                << task.lateStart << "\t\t" << task.lateFinish << "\t\t" << task.slack << endl;
+                << task.MaxLength << "\t\t" << task.slack << endl;
         }
         cout << "\nLength of critical path: " << criticalPathLength << endl;
     }
 };
 
 int main() {
+    link:
     int numTasks;
-    cout << "Enter the number of tasks: ";
+    cout << "\nEnter the number of tasks: ";
     cin >> numTasks;
 
     vector<vector<int>> mat(numTasks, vector<int>(numTasks));
@@ -164,9 +157,12 @@ int main() {
     planner.setDurations(durations);
 
     planner.calculateEarliestTimes();
-    planner.calculateLatestTimes();
     planner.calculateCriticalPath();
     planner.printSchedule();
 
+    int answer;
+    cout << "\n\nAgain? (1 - yes, 0 - no)\n";
+    cin >> answer;
+    if (answer) goto link;
     return 0;
 }
