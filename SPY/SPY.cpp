@@ -104,9 +104,9 @@ public:
     }
 
     void calculateCriticalPath() {
-        if(!hasCycle) {
+        if(hasCycle()) {
             cout << "\nMatrix has a cycle. Can't calculate.";
-            return 0;
+            return;
         }
         int crit = 0;
         for (int l = 0; l < numTasks; ++l) {
