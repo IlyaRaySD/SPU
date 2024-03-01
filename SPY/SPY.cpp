@@ -104,6 +104,10 @@ public:
     }
 
     void calculateCriticalPath() {
+        if(!hasCycle) {
+            cout << "\nMatrix has a cycle. Can't calculate.";
+            return 0;
+        }
         int crit = 0;
         for (int l = 0; l < numTasks; ++l) {
             if (tasks[l].MaxLength > crit) crit = tasks[l].MaxLength;
